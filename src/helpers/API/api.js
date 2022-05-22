@@ -120,6 +120,42 @@ class API {
       })
       .catch((error) => errorHelper(error));
   }
+  async getUserProfile() {
+    return axiosInstance
+      .get("user/getProfile", {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
+  async getService() {
+    return axiosInstance
+      .get("service/getService", {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
+  async getComment() {
+    return axiosInstance
+      .get("comment/getComment", {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
 }
 const instance = new API();
 export default instance;
