@@ -144,9 +144,57 @@ class API {
       })
       .catch((error) => errorHelper(error));
   }
+  async getServiceByUserId(_id) {
+    return axiosInstance
+      .get(`service/getServiceByUserId/${_id}`, {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
+
+  async updateServiceById(_id) {
+    return axiosInstance
+      .get(`service/updateService/${_id}`, {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
+
   async getComment() {
     return axiosInstance
       .get("comment/getComment", {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then((response) => {
+        return generateSuccess(response.data.data);
+      })
+      .catch((error) => errorHelper(error));
+  }
+  deleteComment(_id) {
+    return axiosInstance
+      .delete(`comment/deleteComment/${_id}`, {
+        headers: {
+          authorization: "Bearer " + AccessToken,
+        },
+      })
+      .then(() => generateSuccess(AccessToken))
+      .catch((error) => errorHelper(error));
+  }
+  async getCommentByService(_id) {
+    return axiosInstance
+      .get(`comment/getCommentByService/${_id}`, {
         headers: {
           authorization: "Bearer " + AccessToken,
         },

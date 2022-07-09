@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { API } from "helpers";
-import { EnhancedTable, notify } from "components/index";
+import { EnhancedTable, notify, EnhancedModal } from "components/index";
 import { useIsMountedRef } from "../../../helpers/hooks/index";
 import {
   Box,
@@ -14,9 +14,13 @@ import {
 
 export const Service = () => {
   const [users, setUsers] = useState([]);
+  const [commentList, setCommentList] = useState([]);
   const isMounted = useIsMountedRef();
 
-  const getUsers = useCallback(async () => {
+  const [selectedService, setSelectedService] = useState("");
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+
+  const getServices = useCallback(async () => {
     try {
       const response = await API.getService();
       if (response.success) {
@@ -32,9 +36,29 @@ export const Service = () => {
   }, [isMounted]);
 
   useEffect(() => {
-    getUsers();
-  }, [getUsers]);
+    getServices();
+  }, [getServices]);
 
+  const getCommentByService = useCallback(async () => {
+    try {
+      const response = await API.getCommentByService(
+        "6286f5db4cd0860e3c428cff"
+      );
+      if (response.success) {
+        setCommentList(response.data.data);
+      } else {
+        setCommentList([]);
+        notify("Failed to Fetch Users List");
+      }
+    } catch (err) {
+      setCommentList([]);
+      notify("Failed to Fetch Users List");
+    }
+  }, []);
+
+  useEffect(() => {
+    getCommentByService();
+  }, [getCommentByService]);
   let content = (
     <Box
       sx={{
@@ -44,6 +68,15 @@ export const Service = () => {
         minHeight: "100vh",
       }}
     >
+      <EnhancedModal
+        isOpen={modalIsOpen}
+        dialogTitle={`Detail of Service`}
+        dialogContent={commentList}
+        options={{
+          onClose: () => setModalIsOpen(false),
+          disableSubmit: true,
+        }}
+      />
       <Container
         maxWidth="lg"
         sx={{
@@ -85,8 +118,8 @@ export const Service = () => {
                     <Button
                       size="small"
                       onClick={() => {
-                        // setModalIsOpen(true);
-                        // setSelectedSale(sale);
+                        setModalIsOpen(true);
+                        setSelectedService(service);
                       }}
                     >
                       Check Comment
@@ -95,7 +128,7 @@ export const Service = () => {
                       size="small"
                       onClick={() => {
                         // setModalIsOpen(true);
-                        // setSelectedSale(sale);
+                        // setSelectedService(sale);
                       }}
                     >
                       Add Service
@@ -108,7 +141,7 @@ export const Service = () => {
         ) : (
           <Typography>No Data Available</Typography>
         )}
-
+        {selectedService}
         <EnhancedTable
           data={users}
           title="Service Manager"
