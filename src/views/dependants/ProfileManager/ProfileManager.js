@@ -1,14 +1,33 @@
-import { Box, InputLabel, TextField, Button, Paper, Grid } from "@mui/material";
+import {
+  Box,
+  InputLabel,
+  TextField,
+  Button,
+  Paper,
+  Grid,
+  Card,
+  CardActionArea,
+  // Button,
+  FormControl,
+  CardContent,
+  Typography,
+} from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 import { API } from "helpers";
-import { notify } from "components/index";
+import { notify, EnhancedModal } from "components/index";
 import Avatar from "@mui/material/Avatar";
 import UploadIcon from "@mui/icons-material/Upload";
-import { useFormik, Formik } from "formik";
+import { useFormik, Formik, Form, Field } from "formik";
 import * as Yup from "yup";
 
 export const Profile = () => {
   const [currentUser, setCurrentUser] = useState({});
+  const [currentId, setCurrentId] = useState("");
+  const [services, setServices] = useState([]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [comment, setComment] = useState([]);
+  const [selectedService, setSelectedService] = useState("");
+  const [serviceModal, setserviceModal] = useState(false);
   const [profilePicture, setProfilePicture] = useState("");
   const [initialValue, setInitialValue] = useState({
     companyName: "",
@@ -63,6 +82,8 @@ export const Profile = () => {
     if (response.success) {
       const res = response.data.customerData;
       console.log(res);
+      setCurrentId(res._id);
+      console.log("current id", currentId);
       const _initialValues = {
         companyName: res.companyName,
         Address: res.Address,
@@ -77,11 +98,166 @@ export const Profile = () => {
       setCurrentUser({});
       notify("Failed to Fetch User Profile", null, "warning");
     }
+    getServiceByUserId();
+    // }
   }, []);
 
   useEffect(() => {
     getUserProfile();
   }, [getUserProfile]);
+
+  const createService = async (data) => {
+    const response = await API.createService(data);
+    if (response.success) {
+      notify("Service Creation Successed", null, "success");
+      setserviceModal(false);
+      getServiceByUserId();
+    } else {
+      setserviceModal(false);
+      notify("Service Creation Failed", null, "warning");
+    }
+  };
+
+  const initialValues = {
+    description: "",
+    name: "",
+    cost: "",
+    private: "true",
+  };
+
+  const validationSchema = () => {
+    return Yup.object().shape({
+      description: Yup.string().max(255).required("Description Is Required"),
+      name: Yup.string().min(5).max(255).required("Name Is Required"),
+      cost: Yup.number().required("Cost Is Required"),
+      private: Yup.boolean(),
+    });
+  };
+
+  const handleSubmit = async (values, { resetForm }) => {
+    const data = {
+      description: values.description,
+      name: values.name,
+      serviceId: values.serviceId,
+      cost: values.cost,
+      private: values.private,
+    };
+    createService(data);
+    resetForm();
+  };
+
+  let createServiceModal = (
+    <Box>
+      <Formik
+        initialValues={initialValues}
+        validationSchema={validationSchema}
+        onSubmit={handleSubmit}
+      >
+        {({ errors, touched, isSubmitting }) => (
+          <Form>
+            <Field
+              as={TextField}
+              fullWidth
+              label="Service Name"
+              margin="normal"
+              name="name"
+              type="text"
+              variant="outlined"
+              error={touched.name && Boolean(errors.name)}
+              helperText={touched.name && errors.name}
+            />
+            <Field
+              as={TextField}
+              fullWidth
+              label=" Description"
+              margin="normal"
+              name="description"
+              type="text"
+              variant="outlined"
+              error={touched.description && Boolean(errors.description)}
+              helperText={touched.description && errors.description}
+            />
+            <Field
+              as={TextField}
+              fullWidth
+              label="Cost "
+              margin="normal"
+              name="cost"
+              type="text"
+              variant="outlined"
+              error={touched.cost && Boolean(errors.cost)}
+              helperText={touched.cost && errors.cost}
+            />
+            <Field
+              as={TextField}
+              fullWidth
+              label="Private "
+              margin="normal"
+              name="private"
+              type="text"
+              placeholder="true "
+              variant="outlined"
+              error={touched.private && Boolean(errors.private)}
+              helperText={touched.private && errors.private}
+            />
+
+            <Box sx={{ mt: 2 }}>
+              <Button
+                color="primary"
+                disabled={isSubmitting}
+                size="large"
+                variant="contained"
+                type="submit"
+              >
+                Create Service
+              </Button>
+            </Box>
+          </Form>
+        )}
+      </Formik>
+    </Box>
+  );
+
+  const getServiceByUserId = useCallback(async () => {
+    try {
+      const response = await API.getServiceByUserId("6286ea722ace583bb464d731");
+      if (response.success) {
+        setServices(response.data.data);
+      } else {
+        setServices([]);
+        notify("Failed to Fetch Users List");
+      }
+    } catch (err) {
+      setServices([]);
+      notify("Failed to Fetch Users List");
+    }
+  }, []);
+
+  useEffect(() => {
+    getServiceByUserId();
+  }, [getServiceByUserId]);
+
+  const getCommentByService = useCallback(async () => {
+    console.log(selectedService);
+    try {
+      const response = await API.getCommentByService(
+        "6286f5944cd0860e3c428cf4"
+      );
+      if (response.success) {
+        setComment(response.data.data);
+      } else {
+        setComment([]);
+        notify("Failed to Fetch Users List");
+      }
+    } catch (err) {
+      setComment([]);
+      notify("Failed to Fetch Users List");
+    }
+  }, []);
+
+  useEffect(() => {
+    getCommentByService();
+  }, [getCommentByService]);
 
   let userProfileForm = (
     <Formik enableReinitialize={true} initialValues={formik.initialValue}>
@@ -321,10 +497,152 @@ export const Profile = () => {
       </form>
     </Formik>
   );
+
+  let CommentDetailModal = (
+    <Box>
+      <FormControl fullWidth>
+        {comment.length > 0 ? (
+          comment.map((com) => {
+            return (
+              <Box key={com._id} mb={2}>
+                <Card>
+                  <CardContent>
+                    <div style={{ width: 300, whiteSpace: "nowrap" }}>
+                      <Typography
+                        component="div"
+                        sx={{
+                          textOverflow: "ellipsis",
+                          overflow: "hidden",
+                        }}
+                        gutterBottom
+                      >
+                        CommentDate: {com.commentDate}
+                      </Typography>
+                    </div>
+
+                    <Typography variant="body2">
+                      content: {com.content}
+                      <br />
+                    </Typography>
+                  </CardContent>
+                  <CardActionArea>
+                    <Button
+                      size="small"
+                      onClick={() => {
+                        // setModalIsOpen(true);
+                        // setSelectedService(service._id);
+                      }}
+                    >
+                      Delete Comment
+                    </Button>
+                  </CardActionArea>
+                </Card>{" "}
+              </Box>
+            );
+          })
+        ) : (
+          <Typography>No Data Available</Typography>
+        )}
+      </FormControl>
+    </Box>
+  );
+
+  let userServices = (
+    <Box>
+      <br />
+      <Typography>Update Section:</Typography>{" "}
+      <Box maxWidth="xl" sx={{ textAlign: "left", ml: 4 }}>
+        <Button
+          size="middle"
+          variant="contained"
+          onClick={() => setserviceModal(true)}
+        >
+          Create Service
+        </Button>{" "}
+      </Box>
+      <br />
+      {services.length > 0 ? (
+        services.map((service) => {
+          return (
+            <Box key={service._id} mb={2}>
+              <Card>
+                <CardContent>
+                  <div style={{ width: 300, whiteSpace: "nowrap" }}>
+                    <Typography
+                      component="div"
+                      sx={{
+                        textOverflow: "ellipsis",
+                        overflow: "hidden",
+                      }}
+                      gutterBottom
+                    >
+                      Service Name: {service.name}
+                    </Typography>
+                  </div>
+
+                  <Typography variant="body2">
+                    Price: ${service.cost}
+                    <br />
+                  </Typography>
+                  <Typography variant="body2">
+                    Description: {service.description}
+                    <br />
+                  </Typography>
+                </CardContent>
+                <CardActionArea>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setModalIsOpen(true);
+                      setSelectedService(service._id);
+                    }}
+                  >
+                    Check Comment
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      // setModalIsOpen(true);
+                      // setSelectedSale(sale);
+                    }}
+                  >
+                    Publish
+                  </Button>
+                </CardActionArea>
+              </Card>{" "}
+            </Box>
+          );
+        })
+      ) : (
+        <Typography>No Data Available</Typography>
+      )}
+    </Box>
+  );
+
   return (
     <Box sx={{ ml: 4 }}>
+      <EnhancedModal
+        isOpen={modalIsOpen}
+        dialogTitle={`Detail of Comment`}
+        dialogContent={CommentDetailModal}
+        options={{
+          onClose: () => setModalIsOpen(false),
+          disableSubmit: true,
+        }}
+      />
+      <EnhancedModal
+        isOpen={serviceModal}
+        dialogTitle={`Create New Service`}
+        dialogContent={createServiceModal}
+        options={{
+          onClose: () => setserviceModal(false),
+          disableSubmit: true,
+        }}
+      />
       <Paper elevation={2} sx={{ py: 3, px: 12 }}>
         {userProfileForm}
+
+        {userServices}
       </Paper>
     </Box>
   );
