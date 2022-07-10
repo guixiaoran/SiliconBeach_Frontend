@@ -1,14 +1,17 @@
 /***
  *  Created by Sanchit Dang
  ***/
-import { Login } from './common/Login/Login';
-import { AuthCallback } from './common/Login/AuthCallback';
-import { FourOFour } from './common/FourOFour/FourOFour';
-import { Register } from './common/Register/Register';
-import { Home } from './dependants/Home/Home';
-import { MobileMenu } from './dependants/mobileMenu/mobileMenu';
-import { Example } from './dependants/Example/Example';
-import { UsersManager } from './dependants/UsersManager/UsersManager';
+import { Login } from "./common/Login/Login";
+import { AuthCallback } from "./common/Login/AuthCallback";
+import { FourOFour } from "./common/FourOFour/FourOFour";
+import { Register } from "./common/Register/Register";
+import { Home } from "./dependants/Home/Home";
+import { MobileMenu } from "./dependants/mobileMenu/mobileMenu";
+import { Example } from "./dependants/Example/Example";
+import { UsersManager } from "./dependants/UsersManager/UsersManager";
+import { Service } from "./dependants/ServiceManager/ServiceManager";
+import { Profile } from "./dependants/ProfileManager/ProfileManager";
+import { UserCom } from "./dependants/UserCom/UserCom";
 export {
   Example,
   Login,
@@ -18,4 +21,7 @@ export {
   FourOFour,
   AuthCallback,
   UsersManager,
+  Service,
+  Profile,
+  UserCom,
 };
